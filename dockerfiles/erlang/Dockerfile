@@ -1,34 +1,40 @@
-# Image Name: erlang
-# Description: Erlang Image
-# Creator: Leif Gensert / leif@leif.io
-
 FROM alpine:3.4
-MAINTAINER Leif Gensert | leif@leif.io
+MAINTAINER Leif Gensert <leif@leif.io>
 
-ENV FULL_VERSION=19.0.1-r0
+ARG ERLANG_VERSION=19.1.5
 
-LABEL name="erlang" version=$FULL_VERSION
+LABEL name="erlang" version=$ERLANG_VERSION
 
-RUN apk --update --no-cache --repository http://nl.alpinelinux.org/alpine/edge/community add \
-    git \
-    erlang=$FULL_VERSION \
-    erlang-dev=$FULL_VERSION \
-    erlang-kernel=$FULL_VERSION \
-    erlang-hipe=$FULL_VERSION \
-    erlang-compiler=$FULL_VERSION \
-    erlang-stdlib=$FULL_VERSION \
-    erlang-erts=$FULL_VERSION \
-    erlang-tools=$FULL_VERSION \
-    erlang-syntax-tools=$FULL_VERSION \
-    erlang-sasl=$FULL_VERSION \
-    erlang-crypto=$FULL_VERSION \
-    erlang-public-key=$FULL_VERSION \
-    erlang-ssl=$FULL_VERSION \
-    erlang-ssh=$FULL_VERSION \
-    erlang-asn1=$FULL_VERSION \
-    erlang-inets=$FULL_VERSION \
-    erlang-mnesia=$FULL_VERSION \
-    erlang-odbc=$FULL_VERSION \
-    erlang-erl-interface=$FULL_VERSION \
-    erlang-parsetools=$FULL_VERSION \
-    erlang-eunit=$FULL_VERSION
+ARG DISABLED_APPS='megaco wx debugger jinterface orber reltool observer gs et'
+ARG ERLANG_DOWNLOAD_URL="https://github.com/erlang/otp/archive/OTP-${ERLANG_VERSION}.tar.gz"
+ARG ERLANG_DOWNLOAD_SHA256="1de52d8292b9d1a1a146f888788d32ce9f1f3eec17a5db59d94d38d8e257c240"
+
+RUN set -xe \
+    && apk --update add --virtual build-dependencies curl ca-certificates build-base autoconf perl ncurses-dev openssl-dev unixodbc-dev tar \
+    && apk --update add ncurses openssl unixodbc \
+    && curl -fSL -o otp-src.tar.gz "$ERLANG_DOWNLOAD_URL" \
+    && echo "$ERLANG_DOWNLOAD_SHA256  otp-src.tar.gz" | sha256sum -c - \
+    && mkdir -p /usr/src/otp-src \
+    && tar -xzf otp-src.tar.gz -C /usr/src/otp-src --strip-components=1 \
+    && rm otp-src.tar.gz \
+    && cd /usr/src/otp-src \
+    && for lib in ${DISABLED_APPS} ; do touch lib/${lib}/SKIP ; done \
+    && ./otp_build autoconf \
+    && ./configure \
+        --enable-smp-support \
+        --enable-m64-build \
+        --disable-native-libs \
+        --enable-sctp \
+        --enable-threads \
+        --enable-kernel-poll \
+        --disable-hipe \
+    && make -j$(nproc) \
+    && make install \
+    && find /usr/local -name examples | xargs rm -rf \
+    && apk del build-dependencies \
+    && ls -d /usr/local/lib/erlang/lib/*/src | xargs rm -rf \
+    && rm -rf \
+      /opt \
+      /var/cache/apk/* \
+      /tmp/* \
+      /usr/src
