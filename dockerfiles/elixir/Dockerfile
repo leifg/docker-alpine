@@ -5,8 +5,8 @@
 FROM leifg/erlang
 MAINTAINER Leif Gensert | leif@leif.io
 
-ENV FULL_VERSION 1.3.2
-ENV DOWNLOAD_SHA256 45fdb9464b0fbe44c919482f1247740cc9c5d399280ef07e386aa7402b085be7
+ENV FULL_VERSION=1.3.4
+ENV DOWNLOAD_SHA256=eac16c41b88e7293a31d6ca95b5d72eaec92349a1f16846344f7b88128587e10
 
 RUN apk --update add --virtual build-dependencies curl ca-certificates \
     && curl -fSL -o elixir.zip https://github.com/elixir-lang/elixir/releases/download/v${FULL_VERSION}/Precompiled.zip \
