@@ -28,7 +28,7 @@ RUN set -xe \
         --enable-threads \
         --enable-kernel-poll \
         --disable-hipe \
-    && make -j$(nproc) \
+    && make -j$(getconf _NPROCESSORS_ONLN) \
     && make install \
     && find /usr/local -name examples | xargs rm -rf \
     && apk del build-dependencies \
