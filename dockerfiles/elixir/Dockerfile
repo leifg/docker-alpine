@@ -2,7 +2,7 @@
 # Description: Erlang Image
 # Creator: Leif Gensert / leif@leif.io
 
-FROM leifg/erlang
+FROM leifg/erlang:19.2
 MAINTAINER Leif Gensert | leif@leif.io
 
 ENV FULL_VERSION=1.3.4
